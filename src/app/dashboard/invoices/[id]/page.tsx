@@ -1,6 +1,3 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,88 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { fetchInvoiceById } from '@/lib/data';
-import type { Invoice } from '@/lib/definitions';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
+import { InvoicePrintButton } from '@/components/dashboard/invoice-print-button';
 
-function InvoiceSkeleton() {
-    return (
-        <Card className="w-full max-w-4xl mx-auto printable-area">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <Skeleton className="h-8 w-48 mb-2" />
-                        <Skeleton className="h-4 w-32" />
-                    </div>
-                    <Skeleton className="h-12 w-12" />
-                </div>
-                <Separator className="my-4" />
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-4 w-32" /></div>
-                    <div><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-4 w-32" /></div>
-                    <div><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-4 w-32" /></div>
-                    <div><Skeleton className="h-4 w-24 mb-1" /><Skeleton className="h-4 w-32" /></div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead><Skeleton className="h-4 w-full" /></TableHead>
-                            <TableHead><Skeleton className="h-4 w-full" /></TableHead>
-                            <TableHead><Skeleton className="h-4 w-full" /></TableHead>
-                            <TableHead><Skeleton className="h-4 w-full" /></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {[...Array(3)].map((_, i) => (
-                        <TableRow key={i}>
-                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                 <div className="mt-4 flex justify-end">
-                    <div className="w-full max-w-xs space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                    </div>
-                 </div>
-            </CardContent>
-        </Card>
-    );
-}
+export default async function InvoicePage({ params }: { params: { id: string } }) {
+  const invoice = await fetchInvoiceById(params.id);
 
-export default function InvoicePage({ params }: { params: { id: string } }) {
-  const [invoice, setInvoice] = useState<Invoice | null | undefined>(null);
-  const { id } = params;
-
-  useEffect(() => {
-    async function getInvoice() {
-      const data = await fetchInvoiceById(id);
-      setInvoice(data);
-    }
-    getInvoice();
-  }, [id]);
-
-  if (invoice === null) {
-    return <InvoiceSkeleton />;
-  }
-
-  if (invoice === undefined) {
+  if (!invoice) {
     notFound();
   }
 
   return (
     <div className="p-4">
         <div className="flex justify-end mb-4 no-print">
-            <Button onClick={() => window.print()}>
-                <Printer className="mr-2 h-4 w-4" /> Print / Download PDF
-            </Button>
+            <InvoicePrintButton />
         </div>
       <Card className="w-full max-w-4xl mx-auto shadow-lg printable-area">
         <CardHeader>
