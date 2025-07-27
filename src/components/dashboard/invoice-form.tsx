@@ -58,8 +58,17 @@ const invoiceSchema = z.object({
 
 type InvoiceFormData = z.infer<typeof invoiceSchema>;
 
+const newCustomerSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    address: z.string().min(1, "Address is required"),
+});
+
+type NewCustomerFormData = z.infer<typeof newCustomerSchema>;
+
+
 export function InvoiceForm({
-  customers,
+  customers: initialCustomers,
   products,
   pastInvoices
 }: {
@@ -72,6 +81,8 @@ export function InvoiceForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [isNewCustomerDialogOpen, setIsNewCustomerDialogOpen] = useState(false);
   
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
@@ -83,6 +94,11 @@ export function InvoiceForm({
       tax: 8,
       discount: 0,
     },
+  });
+
+  const newCustomerForm = useForm<NewCustomerFormData>({
+    resolver: zodResolver(newCustomerSchema),
+    defaultValues: { name: "", email: "", address: "" }
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -123,6 +139,21 @@ export function InvoiceForm({
     router.push('/dashboard');
     setIsSubmitting(false);
   };
+
+  const onNewCustomerSubmit = (data: NewCustomerFormData) => {
+    const newCustomer: Customer = {
+        id: `cust-${Date.now()}`,
+        ...data
+    };
+    setCustomers(prev => [...prev, newCustomer]);
+    form.setValue('customerId', newCustomer.id);
+    setIsNewCustomerDialogOpen(false);
+    newCustomerForm.reset();
+     toast({
+      title: 'Customer Created',
+      description: `${newCustomer.name} has been added to the customer list.`,
+    });
+  }
   
   const handleProductSelect = (value: string, index: number) => {
     const product = products.find(p => p.name === value);
@@ -180,22 +211,55 @@ export function InvoiceForm({
               <div className="grid md:grid-cols-3 gap-4">
                 <div className='md:col-span-2 grid gap-2'>
                     <Label htmlFor="customer">Customer</Label>
-                    <Controller
-                        control={form.control}
-                        name="customerId"
-                        render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a customer" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {customers.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+                    <div className="flex gap-2">
+                        <Controller
+                            control={form.control}
+                            name="customerId"
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a customer" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {customers.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        <Dialog open={isNewCustomerDialogOpen} onOpenChange={setIsNewCustomerDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="outline">New Customer</Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add New Customer</DialogTitle>
+                                    <DialogDescription>Enter the details of the new customer.</DialogDescription>
+                                </DialogHeader>
+                                <form onSubmit={newCustomerForm.handleSubmit(onNewCustomerSubmit)} className="grid gap-4 py-4">
+                                     <div className="grid gap-2">
+                                        <Label htmlFor="name">Name</Label>
+                                        <Input id="name" {...newCustomerForm.register('name')} />
+                                        {newCustomerForm.formState.errors.name && <p className="text-sm text-destructive">{newCustomerForm.formState.errors.name.message}</p>}
+                                     </div>
+                                     <div className="grid gap-2">
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input id="email" type="email" {...newCustomerForm.register('email')} />
+                                         {newCustomerForm.formState.errors.email && <p className="text-sm text-destructive">{newCustomerForm.formState.errors.email.message}</p>}
+                                     </div>
+                                     <div className="grid gap-2">
+                                        <Label htmlFor="address">Address</Label>
+                                        <Input id="address" {...newCustomerForm.register('address')} />
+                                         {newCustomerForm.formState.errors.address && <p className="text-sm text-destructive">{newCustomerForm.formState.errors.address.message}</p>}
+                                     </div>
+                                      <DialogFooter>
+                                        <Button type="submit">Save Customer</Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                     {form.formState.errors.customerId && <p className="text-sm text-destructive">{form.formState.errors.customerId.message}</p>}
                 </div>
               </div>
