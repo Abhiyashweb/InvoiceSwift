@@ -6,6 +6,16 @@ import { FileText, Users, Package, Settings, LifeBuoy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Icons } from '../icons';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+
 
 const navItems = [
   { href: '/dashboard', label: 'Invoices', icon: FileText },
@@ -53,15 +63,48 @@ export function SidebarNav() {
                     Settings
                   </Button>
                 </Link>
-                 <Link href="#">
-                  <Button
-                    variant='ghost'
-                    className="w-full justify-start"
-                  >
-                    <LifeBuoy className="mr-2 h-4 w-4" />
-                    Help & Support
-                  </Button>
-                </Link>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      className="w-full justify-start"
+                    >
+                      <LifeBuoy className="mr-2 h-4 w-4" />
+                      Help & Support
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Help & Support</DialogTitle>
+                      <DialogDescription>
+                        Get help from our support team and learn more about the developers.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Support Team</h3>
+                        <p className="text-sm text-muted-foreground">
+                          For any issues or questions, please reach out to our support team. We're available 24/7.
+                        </p>
+                        <p className="text-sm mt-2"><strong>Email:</strong> support@invoiceswift.com</p>
+                        <p className="text-sm"><strong>Phone:</strong> +1 (800) 555-0199</p>
+                      </div>
+                       <div>
+                        <h3 className="text-lg font-semibold mb-2">Developers</h3>
+                        <div className="flex items-center gap-4">
+                            <Avatar>
+                                <AvatarImage src="https://placehold.co/40x40" alt="Dev" data-ai-hint="person portrait" />
+                                <AvatarFallback>D</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold">The Dev Team</p>
+                                <p className="text-sm text-muted-foreground">The amazing developers behind InvoiceSwift.</p>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
             </nav>
         </div>
     </div>
