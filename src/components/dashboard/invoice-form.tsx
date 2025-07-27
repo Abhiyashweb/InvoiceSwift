@@ -110,7 +110,7 @@ export function InvoiceForm({
   const watchTax = form.watch('tax');
   const watchDiscount = form.watch('discount');
   
-  const subtotal = watchLineItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+  const subtotal = watchLineItems.reduce((acc, item) => acc + (item.quantity || 0) * (item.unitPrice || 0), 0);
   const taxAmount = subtotal * (watchTax / 100);
   const discountAmount = subtotal * (watchDiscount / 100);
   const total = subtotal + taxAmount - discountAmount;
@@ -321,37 +321,47 @@ export function InvoiceForm({
               <div>
                 <Label>Line Items</Label>
                 <div className="grid gap-4 mt-2">
-                    {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
-                             <div className="col-span-12 md:col-span-6">
-                                <Controller
-                                    control={form.control}
-                                    name={`lineItems.${index}.description`}
-                                    render={({ field }) => (
-                                        <Select onValueChange={(value) => handleProductSelect(value, index)} defaultValue={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select item or describe" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {products.map((p) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                             </div>
-                             <div className="col-span-4 md:col-span-2">
-                                <Input type="number" placeholder="Qty" {...form.register(`lineItems.${index}.quantity`)} />
-                             </div>
-                             <div className="col-span-5 md:col-span-3">
-                                <Input type="number" placeholder="Price" {...form.register(`lineItems.${index}.unitPrice`)} step="0.01" />
-                             </div>
-                            <div className="col-span-3 md:col-span-1 flex justify-end">
-                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                  {fields.map((field, index) => {
+                    const quantity = watchLineItems[index]?.quantity || 0;
+                    const unitPrice = watchLineItems[index]?.unitPrice || 0;
+                    const itemTotal = quantity * unitPrice;
+                    return (
+                      <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
+                           <div className="col-span-12 md:col-span-5">
+                              <Controller
+                                  control={form.control}
+                                  name={`lineItems.${index}.description`}
+                                  render={({ field }) => (
+                                      <Select onValueChange={(value) => handleProductSelect(value, index)} defaultValue={field.value}>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder="Select item or describe" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              {products.map((p) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                                          </SelectContent>
+                                      </Select>
+                                  )}
+                              />
+                           </div>
+                           <div className="col-span-3 md:col-span-2">
+                              <Input type="number" placeholder="Qty" {...form.register(`lineItems.${index}.quantity`)} />
+                           </div>
+                           <div className="col-span-4 md:col-span-2">
+                              <Input type="number" placeholder="Price" {...form.register(`lineItems.${index}.unitPrice`)} step="0.01" />
+                           </div>
+                           <div className="col-span-3 md:col-span-2 flex items-center justify-end">
+                              <span className="text-sm font-medium w-20 text-right">
+                                  ${itemTotal.toFixed(2)}
+                              </span>
+                           </div>
+                          <div className="col-span-2 md:col-span-1 flex justify-end">
+                              <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                          </div>
+                      </div>
+                    )
+                  })}
                 </div>
                  <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Item
@@ -413,7 +423,7 @@ export function InvoiceForm({
                 <CardContent className="grid gap-4">
                    <div className="flex justify-between">
                        <span>Subtotal</span>
-                       <span>{subtotal.toFixed(2)}</span>
+                       <span>${subtotal.toFixed(2)}</span>
                    </div>
                    <div className="flex justify-between items-center">
                        <Label htmlFor="tax" className="flex-shrink-0">Tax (%)</Label>
