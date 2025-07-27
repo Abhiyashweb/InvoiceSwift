@@ -1,25 +1,27 @@
 'use client';
 
-import Link from 'next/link';
+import Link from "next/link"
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Icons } from '@/components/icons';
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Icons } from "@/components/icons";
 
-export default function LoginPage() {
+
+export default function SignupPage() {
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login logic
+    // Mock signup logic
     router.push('/dashboard');
   };
 
@@ -32,11 +34,21 @@ export default function LoginPage() {
             <CardTitle className="text-3xl font-bold">InvoiceSwift</CardTitle>
           </div>
           <CardDescription className="text-center">
-            Enter your email below to login to your account
+            Create your account to start managing invoices
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form onSubmit={handleSignup} className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="first-name">First name</Label>
+                <Input id="first-name" placeholder="Max" required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last-name">Last name</Label>
+                <Input id="last-name" placeholder="Robinson" required />
+              </div>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -44,36 +56,27 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
-                defaultValue="demo@invoiceswift.com"
               />
             </div>
             <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-              <Input id="password" type="password" required defaultValue="password" />
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required />
             </div>
             <Button type="submit" className="w-full" variant="default">
-              Login
+              Create an account
             </Button>
             <Button variant="outline" className="w-full">
-              Login with Google
+              Sign up with Google
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/" className="underline">
+              Sign in
             </Link>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
