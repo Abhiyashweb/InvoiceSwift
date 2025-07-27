@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
-import { Printer, Download } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -66,14 +66,15 @@ function InvoiceSkeleton() {
 
 export default function InvoicePage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null | undefined>(null);
+  const { id } = params;
 
   useEffect(() => {
     async function getInvoice() {
-      const data = await fetchInvoiceById(params.id);
+      const data = await fetchInvoiceById(id);
       setInvoice(data);
     }
     getInvoice();
-  }, [params.id]);
+  }, [id]);
 
   if (invoice === null) {
     return <InvoiceSkeleton />;
