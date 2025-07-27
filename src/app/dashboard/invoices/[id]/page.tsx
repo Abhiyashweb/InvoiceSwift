@@ -66,15 +66,16 @@ function InvoiceSkeleton() {
 
 export default function InvoicePage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | null | undefined>(null);
-  const { id } = params;
-
+  
   useEffect(() => {
+    const { id } = params;
+    if (!id) return;
     async function getInvoice() {
       const data = await fetchInvoiceById(id);
       setInvoice(data);
     }
     getInvoice();
-  }, [id]);
+  }, [params]);
 
   if (invoice === null) {
     return <InvoiceSkeleton />;
