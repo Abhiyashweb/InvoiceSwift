@@ -19,13 +19,33 @@ import {
 import { Button } from '@/components/ui/button';
 import type { Product } from '@/lib/definitions';
 import { Skeleton } from '../ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
 
-
-function ProductTableRow({ product }: { product: Product }) {
+function ProductTableRow({ product, onDelete }: { product: Product, onDelete: (id: string) => void }) {
+   const { toast } = useToast();
    const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(product.price);
+
+  const handleDelete = () => {
+    onDelete(product.id);
+    toast({
+      title: 'Product Deleted',
+      description: `${product.name} has been successfully deleted.`,
+    });
+  }
 
   return (
     <TableRow>
@@ -42,7 +62,28 @@ function ProductTableRow({ product }: { product: Product }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem className="cursor-pointer"><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive cursor-pointer"><Trash2 className="mr-2 h-4 w-4" /> Delete</DropdownMenuItem>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                    className="text-destructive cursor-pointer"
+                    onSelect={(e) => e.preventDefault()}
+                >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the product.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className='bg-destructive hover:bg-destructive/90'>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
@@ -65,14 +106,20 @@ function TableSkeleton() {
     )
 }
 
-export function ProductsTable({ products }: { products: Product[] }) {
+export function ProductsTable({ products: initialProducts }: { products: Product[] }) {
+    const [products, setProducts] = React.useState(initialProducts);
     const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
-        if(products.length > 0) {
+        setProducts(initialProducts);
+        if(initialProducts.length > 0) {
             setIsLoading(false);
         }
-    }, [products]);
+    }, [initialProducts]);
+
+    const handleDeleteProduct = (id: string) => {
+        setProducts(products.filter(p => p.id !== id));
+    }
 
   return (
     <Table>
@@ -88,7 +135,7 @@ export function ProductsTable({ products }: { products: Product[] }) {
       </TableHeader>
       <TableBody>
         {isLoading ? <TableSkeleton /> : products.map((product) => (
-          <ProductTableRow key={product.id} product={product} />
+          <ProductTableRow key={product.id} product={product} onDelete={handleDeleteProduct} />
         ))}
       </TableBody>
     </Table>
