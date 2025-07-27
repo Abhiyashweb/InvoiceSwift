@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { CalendarIcon, PlusCircle, Trash2, Sparkles, Loader2, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import type { Customer, Product, Invoice } from '@/lib/definitions';
+import type { Customer, Product, Invoice, LineItem } from '@/lib/definitions';
 import { createInvoice } from '@/lib/data';
 import { suggestInvoiceItems } from '@/ai/flows/suggest-invoice-items';
 
@@ -124,20 +124,41 @@ export function InvoiceForm({
       return;
     }
     
-    const newInvoiceData = {
-      // ... map form data to Invoice type
+    const lineItemsWithTotals: LineItem[] = data.lineItems.map((item, index) => ({
+      id: `li-${Date.now()}-${index}`,
+      ...item,
+      total: item.quantity * item.unitPrice,
+    }));
+
+    const calculatedSubtotal = lineItemsWithTotals.reduce((acc, item) => acc + item.total, 0);
+
+    const newInvoiceData: Invoice = {
+        id: `inv-${Date.now()}`,
+        invoiceNumber: `2024-${Math.floor(Math.random() * 1000)}`,
+        customer: selectedCustomer,
+        issueDate: data.issueDate.toISOString(),
+        dueDate: data.dueDate.toISOString(),
+        lineItems: lineItemsWithTotals,
+        subtotal: calculatedSubtotal,
+        tax: data.tax,
+        discount: data.discount,
+        total: calculatedSubtotal + (calculatedSubtotal * data.tax / 100) - (calculatedSubtotal * data.discount / 100),
+        status: 'pending',
     };
     
-    // Mock submission
-    console.log("Submitting:", data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: 'Success!',
-      description: 'Invoice has been created successfully.',
-    });
-    router.push('/dashboard');
-    setIsSubmitting(false);
+    try {
+        await createInvoice(newInvoiceData);
+        toast({
+          title: 'Success!',
+          description: 'Invoice has been created successfully.',
+        });
+        router.push('/dashboard');
+    } catch(error) {
+        console.error("Failed to create invoice:", error);
+        toast({ title: 'Error', description: 'Failed to create invoice.', variant: 'destructive' });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const onNewCustomerSubmit = (data: NewCustomerFormData) => {
